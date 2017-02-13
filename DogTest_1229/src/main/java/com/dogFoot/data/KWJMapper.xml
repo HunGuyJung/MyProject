@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="KWJ">
+  <select id="selectCodiBoard" resultType="codiVo">
+    select b_no,b_type,title,content,hit,c_count,like_count,g_code,b_img,id from board b, member m where b_type=1 and m.m_no=b.m_no order by b.create_time desc
+  </select>
+  <select id="getCodiBoard" resultType="boardVo" parameterType="int">
+  	select * from board where b_type=1 and b_no=#{b_no}
+  </select>
+  <select id="getCodiId" resultType="string" parameterType="int">
+  	select id from member where m_no=#{m_no}
+  </select>
+  <select id="getCodiGoods" resultType="goodsGroupVo" parameterType="map">
+  	select * from goods_group where b_no=#{b_no} and g_no like '${g_no}%'
+  </select>
+  <update id="updateHit" parameterType="int">
+  	update board set hit=hit+1 where b_no=#{b_no}
+  </update>
+  <insert id="insertCodiBoard" parameterType="codiVo">
+  	insert into board values(#{b_no},#{m_no},1,#{title},#{content},sysdate,null,null,0,0,0,null,#{b_img})
+  </insert>
+  <update id="updateCodiBoard" parameterType="codiVo">
+  	update board set title=#{title},content=#{content},b_img=#{b_img} where b_no=#{b_no}
+  </update>
+  <update id="updateCodiGoods" parameterType="map">
+  	update goods_group set g_no=#{g_no},g_img=#{g_img} where b_no=#{b_no} and g_no=#{g_init}
+  </update>
+  <delete id="deleteGoodsGroup" parameterType="map">
+  	delete goods_group where b_no=#{b_no} and g_no=#{g_no}
+  </delete>
+  <delete id="deleteCodiBoard" parameterType="int">
+  	delete board where b_no=#{b_no}
+  </delete>
+  <delete id="deleteCodiGoods" parameterType="int">
+  	delete goods_group where b_no=#{b_no}
+  </delete>
+  <select id="getNextNo" resultType="int">
+  	select nvl(max(b_no),0)+1 from board
+  </select>
+  <select id="getG_imgName" resultType="String" parameterType="String">
+  	select min(g_img) g_img from goods where g_no=#{g_no}
+  </select>
+  <insert id="insertCodiGoods" parameterType="goodsGroupVo">
+  	insert into goods_group values(#{b_no},#{g_no},#{g_img})
+  </insert>
+  <select id="listCodiGoods" resultType="goodsGroupVo" parameterType="String">
+  		select g_no, g_img from (select min(g_no) g_no, g_img, min(g_code) g_code from goods where category=#{category} group by g_img) g, board b where g.g_code=b.g_code and b_type=0
+  </select>
+  <select id="listReviewBoard" resultType="reviewVo">
+  	select b_no,min(b.g_code) g_code,title,content,b.create_time create_time,hit,min(g_name) g_name,min(g_img) g_img,min(brand) brand,min(price) price,id from board b,member m,goods g where b.g_code=g.g_code and m.m_no=b.m_no and b_type=2
+	group by b_no,title,content,b.create_time,hit,id order by b.create_time desc
+  </select>
+  <select id="buyList" resultType="goodsVo" parameterType="int">
+  	select g_name,g_img,brand,g_code from orders o,order_detail od,goods g
+  	where m_no=#{m_no} and od.o_no=o.o_no and g.g_no=od.g_no
+  </select>
+  <select id="detailGoodsSender" resultType="string" parameterType="int">
+  	select b_no from board where b_type=0 and g_code=#{g_code}
+  </select>
+  <insert id="insertReviewBoard" parameterType="boardVo">
+	insert into board values(#{b_no},#{m_no},2,#{title},#{content},sysdate,null,null,0,0,#{like_count},#{g_code},null)  
+  </insert>
+  <select id="detailReviewBoard" resultType="reviewVo" parameterType="int">
+  	select b_no,title,content,b.create_time create_time,hit,min(g_name) g_name,min(g_img) g_img,min(brand) brand,min(price) price,id from board b,member m,goods g where b.g_code=g.g_code and m.m_no=b.m_no and b_type=2 and b_no=#{b_no}
+	group by b_no,title,content,b.create_time,hit,id
+  </select>
+  <select id="frontList" resultType="boardVo">
+  	select * from board where b_type=3
+  </select>
+  <delete id="deleteReviewBoard" parameterType="int">
+  	delete board where b_no=#{b_no} and b_type=2
+  </delete>
+</mapper>

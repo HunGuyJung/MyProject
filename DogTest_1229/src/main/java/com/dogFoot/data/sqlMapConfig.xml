@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<properties resource="com/dogFoot/data/db.properties"/>
+	<typeAliases>
+		<typeAlias type="com.dogFoot.vo.BoardLikeVo" alias="boardLikeVo"/>
+		<typeAlias type="com.dogFoot.vo.BoardVo" alias="boardVo"/>
+		<typeAlias type="com.dogFoot.vo.CommentsVo" alias="commentsVo"/>
+		<typeAlias type="com.dogFoot.vo.DealVo" alias="dealVo"/>
+		<typeAlias type="com.dogFoot.vo.DetailGoodsVo" alias="detailGoodsVo"/>
+		<typeAlias type="com.dogFoot.vo.GoodsGroupVo" alias="goodsGroupVo"/>
+		<typeAlias type="com.dogFoot.vo.GoodsVo" alias="goodsVo"/>
+		<typeAlias type="com.dogFoot.vo.MemberVo" alias="memberVo"/>
+		<typeAlias type="com.dogFoot.vo.OrderDetailVo" alias="orderDetailVo"/>
+		<typeAlias type="com.dogFoot.vo.OrdersVo" alias="ordersVo"/>
+		<typeAlias type="com.dogFoot.vo.SourceVo" alias="sourceVo"/>
+		<typeAlias type="com.dogFoot.vo.SearchVo" alias="searchVo"/>
+		<typeAlias type="com.dogFoot.vo.CodiVo" alias="codiVo"/>
+		<typeAlias type="com.dogFoot.vo.ReviewVo" alias="reviewVo"></typeAlias>
+		<typeAlias type="com.dogFoot.vo.EventBoardVo" alias="eventBoardVo"/>
+		<typeAlias type="com.dogFoot.vo.MyPayVo" alias="myPayVo"/>
+	</typeAliases>	
+  <environments default="development">
+    <environment id="development">
+      <transactionManager type="JDBC"/>
+      <dataSource type="POOLED">
+        <property name="driver" value="${driver}"/>
+        <property name="url" value="${url}"/>
+        <property name="username" value="${user}"/>
+        <property name="password" value="${pwd}"/>
+      </dataSource>
+    </environment>
+  </environments>
+  <mappers>
+    <mapper resource="com/dogFoot/data/JHGMapper.xml"/>
+    <mapper resource="com/dogFoot/data/KJSMapper.xml"/>
+    <mapper resource="com/dogFoot/data/KWJMapper.xml"/>
+  </mappers>
+</configuration>

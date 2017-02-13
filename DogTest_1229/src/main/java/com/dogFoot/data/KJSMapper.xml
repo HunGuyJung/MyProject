@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="KJS">
+  <select id="selectAll" resultType="memberVo">
+    select * from member
+  </select>
+  <select id="checkIdPwd" resultType="memberVo">
+  	select * from member where id = #{id} and pwd = #{pwd}
+  </select>
+  
+  <select id="compareId" resultType="memberVo">
+  	select * from member where id = #{id}
+  </select>
+  
+  <select id="nextNo" resultType="int">
+  	select nvl(max (m_no), 0) +1 from member
+  </select>
+  
+  <insert id="join" parameterType="memberVo">
+  	insert into member values(seq_m_no.nextval,#{id},#{pwd},#{m_name},#{phone},#{e_mail},#{addr},1,#{sns_type},#{sns_id},sysdate, null, null)
+  </insert>
+  
+  <select id="selectEventBoard" resultType="boardVo">
+  	select b_no, title, create_time, hit, b_img from ( select rownum r, b_no, title, create_time, hit, b_img from (select b_no, title, create_time, hit, b_img from board
+		<where>
+			<choose>
+				<when test="eventKeyword != null and eventKeyword != ''">
+					${eventSearchField} like '%' || #{eventKeyword} || '%' and b_type=3
+				</when>
+				<otherwise>
+					 b_type=3
+				</otherwise>
+			</choose>
+		</where>
+		<choose>
+			<when test="eventOrderField != null">
+			     order by ${eventOrderField} 
+			</when>
+			<otherwise>
+			     order by b_no
+			</otherwise>
+		</choose>
+		) ) a where a.r between #{eventStart} and #{eventEnd}
+  </select>
+	
+  <select id="eventTotalRecord" resultType="int">
+	     select count(*) from board
+	<where>
+		<choose>
+			<when test="eventKeyword != null and eventKeyword != ''">
+			     ${eventSearchField} like '%' || #{eventKeyword} || '%' and b_type=3
+			</when>
+			<otherwise>
+			     b_type=3
+			</otherwise>
+		</choose>
+	</where>
+  </select>
+  
+  <insert id="insertEventBoard" parameterType="eventBoardVo">  
+	insert into board values(#{b_no}, #{m_no}, 3, #{title}, #{content}, sysdate, null, null, 0, #{c_count}, #{like_count}, #{g_code}, #{b_img})
+  </insert>
+  
+  <select id="nextBoardNo" resultType="int">
+  	select nvl(max (b_no), 0) +1 from Board
+  </select>
+  
+  <select id="detailEventBoard" resultType="eventBoardVo">
+     select * from board where b_no = #{b_no} and b_type=3
+  </select>
+  
+  <update id="updateHitEventBoard" parameterType="int">
+  	update board set hit = hit + 1 where b_no = #{b_no} 
+  </update>
+  
+  <update id="updateEventBoard" parameterType="eventBoardVo">
+     update board set title = #{title}, content = #{content}, hit = #{hit}, update_time = sysdate, b_img=#{b_img} where b_no=#{b_no}
+  </update>    
+    
+  <delete id="deleteEventBoard" parameterType="int">
+     delete board where b_no = #{b_no}
+  </delete>
+  
+  <select id="selectMemberVo" parameterType="int" resultType="memberVo">
+  	select * from member where m_no = #{m_no}
+  </select>
+  
+  <select id="selectBoardVoOne" parameterType="int" resultType="boardVo">
+  	select * from board where b_no = #{b_no}
+  </select>
+  
+  
+  <select id="selectMyBoard" resultType="boardVo">
+  	select b_no, b_type, title, create_time, hit, b_img from ( select rownum r, b_no, b_type, title, create_time, hit, b_img from (select b_no, b_type, title, create_time, hit, b_img from board
+		<where>
+			<choose>
+				<when test="myBoardKeyword != null and myBoardKeyword != ''">
+					${myBoardSearchField} like '%' || #{myBoardKeyword} || '%' and m_no = #{m_no}
+				</when>
+				<otherwise>
+					 m_no = #{m_no}
+				</otherwise>
+			</choose>
+			<if test="b_type == null or b_type == ''">
+				and b_type = 1
+			</if>
+			<if test="b_type != null and b_type != 0 and b_type != 3">
+				and b_type = #{b_type}
+			</if>
+		</where>
+		<choose>
+			<when test="myBoardOrderField != null">
+			     order by ${myBoardOrderField} 
+			</when>
+			<otherwise>
+			     order by b_no
+			</otherwise>
+		</choose>
+		) ) a where a.r between #{myBoardStart} and #{myBoardEnd}
+  </select>
+	
+	<select id="myBoardTotalRecord" resultType="int">
+	     select count(*) from board
+		<where>
+			<choose>
+				<when test="myBoardKeyword != null and myBoardKeyword != ''">
+				     ${myBoardSearchField} like '%' || #{myBoardKeyword} || '%' and m_no = #{m_no}
+				</when>
+				<otherwise>
+				     m_no = #{m_no}
+				</otherwise>
+			</choose>
+			<if test="b_type == null or b_type == ''">
+				and b_type = 1
+			</if>
+			<if test="b_type != null and b_type != 0 and b_type != 3">
+				and b_type = #{b_type}
+			</if>
+		</where>
+	</select>
+	
+	<select id="selectMyPay" resultType="myPayVo">
+		select o_no, pay_type, pay_time, delivery_no, receiver, total, o_code, create_time, g_no, g_name, g_img from ( select rownum r, o_no, pay_type, pay_time, delivery_no, receiver, total, o_code, create_time, g_no, g_name, g_img from (select o.o_no, o.pay_type, o.pay_time, o.delivery_no, o.receiver, o.total, o.o_code, o.create_time, g.g_no, g.g_name, g.g_img from (select o_no, pay_type, pay_time, delivery_no, receiver, total, o_code, create_time from orders 
+		<where>
+			<choose>
+				<when test="myPayKeyword != null and myPayKeyword != ''">
+					${myPaySearchField} like '%' || #{myPayKeyword} || '%' and m_no = #{m_no}
+				</when>
+				<otherwise>
+					 m_no = #{m_no}
+				</otherwise>
+			</choose>
+		</where>
+		<choose>
+			<when test="myPayOrderField != null">
+			     order by ${myPayOrderField} 
+			</when>
+			<otherwise>
+			     order by o_no
+			</otherwise>
+		</choose>
+		 ) o , order_detail od, goods g where o.o_no = od.o_no and od.g_no = g.g_no ) ) B where B.r between #{myPayStart} and #{myPayEnd}
+  	</select>
+	
+	<select id="myPayTotalRecord" resultType="int">
+	     select count(*) from orders 
+		<where>
+			<choose>
+				<when test="myPayKeyword != null and myPayKeyword != ''">
+				     ${myPaySearchField} like '%' || #{myPayKeyword} || '%' and m_no = #{m_no}
+				</when>
+				<otherwise>
+				     m_no = #{m_no}
+				</otherwise>
+			</choose>
+		</where>
+	</select>	
+  
+  	<select id="nextOrderNo" resultType="int">
+  		select nvl(max (o_no), 0) +1 from orders
+  	</select>
+  
+  	<insert id="insertOrder" parameterType="ordersVo">
+  		insert into orders values(#{o_no}, #{m_no}, #{pay_type}, sysdate, #{depositor}, #{delivery_no}, #{receiver}, #{receiver_addr}, #{receiver_phone}, #{total}, null, #{o_code}, sysdate, null, null)
+  	</insert>
+  	
+  	<update id="updateMyInfo" parameterType="memberVo">
+  		update member set pwd=#{pwd}, m_name=#{m_name}, phone=#{phone}, e_mail=#{e_mail}, addr=#{addr} where m_no=#{m_no}
+  	</update>
+  	
+  	<insert id="insertOrderDetail" parameterType="orderDetailVo">
+  		insert into order_Detail values(#{od_no}, #{g_no}, #{o_no}, #{count}, #{subtotal})
+  	</insert>
+  	
+  	<select id="nextOrderDetailNo" resultType="int">
+  		select nvl(max (od_no), 0) +1 from order_detail
+  	</select>
+  	
+  	<select id="MaxOrderNo" resultType="int">
+  		select nvl(max (o_no), 0) from orders
+  	</select>
+  	
+</mapper>

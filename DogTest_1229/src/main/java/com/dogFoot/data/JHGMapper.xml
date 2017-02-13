@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="JHG">
+  <select id="categoryList" resultType="String">
+  	select distinct category from board b, goods g where b.g_code=g.g_code and b_type = 0
+  </select>
+  
+  <select id="brandList" resultType="String">
+  	select distinct brand from board b, goods g where b.g_code=g.g_code and b_type = 0
+  </select>
+  
+  <select id="colorList" resultType="String">
+  	select distinct color from board b, goods g where b.g_code=g.g_code and b_type = 0
+  </select>
+  
+  <select id="g_sizeList" resultType="String">
+  	select distinct g_size from board b, goods g where b.g_code=g.g_code and b_type = 0
+  </select>
+
+  <select id="goodsBoardList_search" resultType="boardVo" parameterType="searchVo">
+    select distinct b_no, b_img, title from board b, goods g where b.g_code=g.g_code and b_type = 0
+    <if test="keyword != null">
+    	AND title like '%'||#{keyword}||'%'
+  	</if>
+    <if test="category != null">
+    	AND category in
+    	<foreach collection="category" item="v" separator="," open="(" close=")">#{v}</foreach>
+  	</if>
+  	<if test="brand != null">
+    	AND brand in
+    	<foreach collection="brand" item="v" separator="," open="(" close=")">#{v}</foreach>
+  	</if>
+  	<if test="color != null">
+    	AND color in
+    	<foreach collection="color" item="v" separator="," open="(" close=")">#{v}</foreach>
+  	</if>
+  	<if test="g_size != null">
+    	AND g_size in
+    	<foreach collection="g_size" item="v" separator="," open="(" close=")">#{v}</foreach>
+  	</if>
+  </select>
+  
+  <select id="goodsBoardList" resultType="boardVo">
+    select * from board where b_type=0
+  </select>
+  
+  <select id="goodsDetail" parameterType="int" resultType="detailGoodsVo">
+  	select distinct b_no, title, content, b.g_code, b.b_img, g_name, ROUND((price*1.5),-2) price, amount from board b, goods g where b.g_code = g.g_code and rownum=1 and b_no=#{b_no} 
+  </select>
+  
+  <select id="goodsDetail_color" parameterType="int" resultType="String">
+    select distinct color from goods where g_code=#{g_code}
+  </select>
+  
+  <select id="goodsDetail_sizeCombo" parameterType="goodsVo" resultType="goodsVo">
+    select g_size, amount from goods where g_code=#{g_code} and color=#{color}
+  </select>
+  
+  <insert id="insertBoardLike" parameterType="boardLikeVo">
+  	insert into board_like values(seq_bl.nextval, #{m_no}, #{b_no}, sysdate, null)
+  </insert>
+  
+  <update id="boardLikeCountUpdate" parameterType="int">
+  	update board set like_count = like_count + 1 where b_no=#{b_no}
+  </update>
+  
+  <select id="lowStockGoodsList" resultType="goodsVo"> <!--상품수량 적은순-->
+  	select * from goods where amount <![CDATA[<]]>= 20 order by amount
+  </select>
+  
+  <select id="chart1" resultType="goodsVo">	<!--카테고리별 판매 수량--> 
+  	select category, count(*) amount from goods g,order_detail od where g.g_no=od.g_no group by category
+  </select>
+  
+  <select id="chart2" resultType="ordersVo"> <!--일자별 매출-->
+  	select TO_CHAR(create_time,'yyyy.mm.dd') create_time, sum(total) total from orders group by TO_CHAR(create_time,'yyyy.mm.dd') order by create_time
+  </select>
+  
+  <select id="manager_Members_list" resultType="memberVo"> <!--회원목록-->
+  	select m_no, id, m_level from member order by m_no
+  </select>
+  
+  <select id="manager_Members_Boardlist" resultType="boardVo"> <!--회원이 쓴 모든 글-->
+  	select b_no, title, b_type, b.create_time, hit, c_count, b.m_no, id b_img, m_level g_code from member m,board b where m.m_no=b.m_no and m_level > 0 and b_type > 0  order by create_time
+  </select>
+  
+  <update id="manager_Members_update" parameterType="memberVo"><!-- 회원정보 수정 -->
+  	update member set m_level=#{m_level} where m_no=#{m_no} and id=#{id}
+  </update>
+  
+  <select id="manager_Goods_list" resultType="goodsVo"> <!-- 상품리스트  -->
+  	select * from goods order by g_no
+  </select>
+  
+  <insert id="manager_Goods_insert" parameterType="goodsVo"> <!-- 신상품 등록 -->
+  	insert into goods values(#{g_no}, #{g_code}, #{g_name}, #{price}, #{brand}, #{category}, #{material}, #{g_img}, #{recommend}, #{color}, #{g_size}, #{source_no}, #{amount})
+  </insert>
+  
+  <update id="manager_Goods_update" parameterType="goodsVo"> <!-- 상품정보 수정-->
+  	update goods set g_no=#{g_no}, g_name=#{g_name}, price=#{price}, brand=#{brand}, category=#{category}, material=#{material}, g_img=#{g_img}, recommend=0, color=#{color}, g_size=#{g_size}, source_no=#{source_no}, amount=#{amount} where g_no=#{g_no}
+  </update>
+  
+  <delete id="manager_Goods_delete" parameterType="goodsVo"> <!-- 상품정보 삭제-->
+  	delete goods where g_no=#{g_no}
+  </delete>
+  
+  <select id="manager_Goods_goodsgroup_select" resultType="int"> <!-- 상품정보 삭제시 상품그룹에 등록되있는지 확인-->
+  	select count(*) from goods_group where g_no=#{g_no}
+  </select>
+  
+  <delete id="manager_Goods_goodsgroup_delete" parameterType="String"> <!-- 상품정보 삭제시 상품그룹에 존재시 같이 삭제-->
+  	delete goods_group where g_no=#{g_no}
+  </delete>
+  
+  <select id="goodsBoard_insert_g_code_comboList" resultType="goodsVo"> <!-- 상품상세글 없는 상품코드 목록 -->
+  	select distinct g_code, g_img from goods g where g.g_code not in (select g_code from board where b_type = 0 )
+  </select>
+  
+  <insert id="goodsBoard_insert" parameterType="boardVo"> <!-- 상품상세 글 등록 -->
+  	insert into board values (#{b_no}, #{m_no}, 0, #{title}, #{content}, sysdate, null, null, 0, 0, 0, #{g_code}, #{b_img})
+  </insert>
+  
+  <select id="goodsGroup_insert_list" resultType="goodsVo"> <!-- 상품상세 글 등시 상품군 테이블에 등록할 상품목록 -->
+  	select g_no, g_img from goods where g_code=#{g_code}
+  </select>
+  
+  <insert id="goodsGroup_insert" parameterType="goodsGroupVo"> <!-- 상품군 등록 -->
+  	insert into goods_group values ( #{b_no}, #{g_no}, #{g_img} )
+  </insert>
+  
+  <select id="nonOk_dealList" resultType="dealVo"> <!-- 발주목록_도착버튼 안누른 목록 -->
+  	select * from deal where f_date is null order by d_date
+  </select>
+  
+  <select id="Ok_dealList" resultType="dealVo"> <!-- 발주목록_도착버튼 누른 목록 -->
+  	select * from deal where f_date IS NOT NULL order by f_date
+  </select>
+  
+  <insert id="insertDeal" parameterType="dealVo"> <!-- 발주 등록-->
+  	insert into deal values(seq_deal.nextval, #{source_no}, #{g_no}, sysdate, #{d_qty}, #{d_total}, null)
+  </insert>
+  
+  <update id="confirmDeal" parameterType="dealVo"> <!-- 발주 확인 -->
+  	update deal set f_date=sysdate where d_no=#{d_no}
+  </update>
+  
+  <update id="updateGoodsAmount" parameterType="dealVo"> <!-- 발주 확인시 해당상품 재고 증가 -->
+  	update goods set amount = amount + #{d_qty} where g_no=#{g_no}
+  </update>
+  
+  <delete id="deleteDeal" parameterType="dealVo"> <!-- 발주 취소시 발주 삭제 -->
+  	delete deal where d_no=#{d_no}
+  </delete>
+  
+  <select id="manager_Sales_chart1" resultType="ordersVo"> <!-- 판매현황 차트1 월별 판매현황 -->
+  	select TO_CHAR(create_time,'yyyy.mm') create_time, sum(total) total from orders group by TO_CHAR(create_time,'yyyy.mm') order by create_time
+  </select>
+  
+  <select id="manager_Sales_chart2" resultType="OrderDetailVo"> <!-- 판매현황 차트2 거래처별 판매현황 -->
+  	select a.subtotal, s_name g_no from (select subtotal, source_no from goods g, order_detail od where g.g_no=od.g_no) a, source s where a.source_no=s.source_no
+  </select>
+  
+  <select id="manager_Sales_chart3" resultType="ordersVo">
+  	select sum(total) total, id depositor from orders o, member m where o.m_no=m.m_no group by id
+  </select>
+  
+  <select id="link_codi_goods" parameterType="String" resultType="detailGoodsVo">
+  	select b.b_no, b_img from (select distinct b_no from goods_group where g_img=#{b_img}) a, board b where a.b_no=b.b_no and b_type=1
+  </select>
+
+  <select id="link_review_goods" parameterType="int" resultType="detailGoodsVo">
+  	select b_no, title from board where g_code=#{g_code} and b_type=2
+  </select>
+  
+  <insert id="insertComment" parameterType="commentsVo">
+  	insert into comments values (seq_c_no.nextval, #{m_no}, #{b_no}, #{c_content}, sysdate, null, seq_c_no.currval, 0, 0)
+  </insert>
+  
+  <select id="listComment" parameterType="int" resultType="commentsVo">
+  	select id, b_no, c_content, c_ref, c_level, c_step, c.create_time from comments c, member m where c.m_no=m.m_no and b_no=#{b_no} order by c_no
+  </select>
+  
+</mapper>

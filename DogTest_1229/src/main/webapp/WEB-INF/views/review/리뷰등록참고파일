@@ -1,0 +1,24 @@
+//상품 상세 글 등록 from에서 상품코드 클릭시 이미지 변경
+		$("#goodsBoard_insert_form_g_code").click(function() {
+			var g_img = $("#goodsBoard_insert_form_g_code option:selected").attr("g_img");
+			$("#goodsBoard_insert_form_g_img").attr("src","resources/upload/"+g_img);
+			$("#goodsBoard_insert_form_b_img").val(g_img);
+		});
+		
+		<div id="goodsBoard_insert_g_img">
+     			<img id="goodsBoard_insert_form_g_img" width="300px" height="410px">
+			</div>
+    		<div id="goodsBoard_insert_form_div">
+				<form id="goodsBoard_insert_form" action="goodsBoard_insert.do" method="post">
+					<input type="text" readonly="readonly" value="${m_no }" name="m_no"><br><br>
+					<input id="goodsBoard_insert_form_b_img" type="hidden" name="b_img">
+					글 제목 : <input type="text" name="title"> <br><br>
+					상품코드 : <select id="goodsBoard_insert_form_g_code" name="g_code">
+						<c:forEach var="c" items="${g_code_comboList }">
+							<option value="${c.g_code }" g_img="${c.g_img }">${c.g_code }
+						</c:forEach>
+					</select><br><br>
+					상품설명 : <br><br>
+					<textarea rows="10" cols="50" name="content"></textarea> <br><br>
+				</form><br>
+			</div>

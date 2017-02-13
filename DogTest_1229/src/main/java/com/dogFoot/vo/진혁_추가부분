@@ -1,0 +1,7 @@
+CodiVo 새로 추가함
+typealias 수정
+vo에서 insertcodiboard, insertcodigoods 부분 수정
+
+이벤트 게시판 작동 원리
+KWJMapper에서 이벤트 게시판 게시물 셀렉트
+Dao에서 frontList() 생성
